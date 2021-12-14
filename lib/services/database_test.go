@@ -189,3 +189,20 @@ func TestDatabaseFromRDSCluster(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
 }
+
+func TestDatabaseFromRDSCluster_serverless(t *testing.T) {
+	cluster := &rds.DBCluster{
+		DBClusterArn:                     aws.String("arn:aws:rds:us-east-1:1234567890:cluster:cluster-1"),
+		DBClusterIdentifier:              aws.String("cluster-1"),
+		IAMDatabaseAuthenticationEnabled: aws.Bool(true),
+		Engine:                           aws.String(RDSEngineAuroraMySQL),
+		EngineMode:                       aws.String("serverless"),
+		EngineVersion:                    aws.String("8.0.0"),
+		Endpoint:                         aws.String("localhost"),
+		Port:                             aws.Int64(3306),
+	}
+
+	database, err := NewDatabaseFromRDSCluster(cluster)
+	require.Nil(t, database)
+	require.Error(t, err)
+}

@@ -133,6 +133,13 @@ func NewDatabaseFromRDSInstance(instance *rds.DBInstance) (types.Database, error
 
 // NewDatabaseFromRDSCluster creates a database resource from an RDS cluster (Aurora).
 func NewDatabaseFromRDSCluster(cluster *rds.DBCluster) (types.Database, error) {
+	// Aurora Serverless (v1 and v2) does not support IAM authentication
+	// https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html#aurora-serverless.limitations
+	// https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-2.limitations.html
+	if aws.StringValue(cluster.EngineMode) == RDSEngineModeServerless {
+		return nil, trace.NotImplemented("unsupported Aurora engine mode %v", RDSEngineModeServerless)
+	}
+
 	metadata, err := MetadataFromRDSCluster(cluster)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -247,4 +254,9 @@ const (
 	RDSEngineAuroraMySQL = "aurora-mysql"
 	// RDSEngineAuroraPostgres is RDS engine name for Aurora Postgres clusters.
 	RDSEngineAuroraPostgres = "aurora-postgresql"
+)
+
+const (
+	// RDSEngineModeServerless is the RDS engine mode for Aurora serverless db clusters
+	RDSEngineModeServerless = "serverless"
 )
