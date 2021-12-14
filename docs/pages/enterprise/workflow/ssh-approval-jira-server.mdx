@@ -6,7 +6,7 @@ h1: SSH login approvals using Jira Server
 
 ## Teleport Jira Server Plugin Setup
 
-This guide will talk through how to setup Teleport with Jira Server. Teleport to Jira Server integration allows you to treat Teleport access and permission requests as Jira Tasks.
+This guide will talk through how to set up Teleport with Jira Server. Teleport's integration with Jira Server allows you to treat Teleport access and permission requests as Jira tasks.
 
 <Admonition type="note">
   Teleport's tsh request workflow is synchronous and needs to be approved within 1 hour of the request.
@@ -32,15 +32,15 @@ This guide will talk through how to setup Teleport with Jira Server. Teleport to
 
 - A running Teleport Cluster
 - Admin Privileges with access and control of [`tctl`](../../setup/reference/cli.mdx#tctl)
-- Jira Server installation with owner privileges, specifically to setup webhooks, issue types, and workflows. This plugin has been tested with Jira Software 8.8.0
+- A Jira Server installation with owner privileges, specifically to set up webhooks, issue types, and workflows. This plugin has been tested with Jira Software 8.8.0
 
 ### Create an access-plugin role and user within Teleport
 
-First off, using an existing Teleport Cluster, we are going to create a new Teleport User and Role to access Teleport.
+First, using an existing Teleport Cluster, create a new user and role to access Teleport.
 
-#### Create User and Role for access
+#### Create a user and role for access
 
-Log into Teleport Authentication Server, this is where you normally run `tctl`. Create a
+Log into the Teleport Authentication Server where you normally run `tctl`. Create a
 new user and role that only has API access to the `access_request` API. The below script
 will create a yaml resource file for a new user and role.
 
@@ -75,41 +75,53 @@ $ tctl create -f rscs.yaml
 
 Teleport Plugin uses the `access-plugin-jira` role and user to perform the approval. We export the identity files, using [`tctl auth sign`](../../setup/reference/cli.mdx#tctl-auth-sign).
 
+<Tabs>
+<TabItem title="Self Hosted" scopes={["oss", "enterprise"]}>
 ```code
 $ tctl auth sign --format=tls --user=access-plugin-jira --out=auth --ttl=2190h
 # ...
 ```
+The above sequence should result in three PEM-encoded files being generated: `auth.crt`, `auth.key`, and `auth.cas` (certificate, private key, and CA certs respectively). We'll reference these files later when [configuring the plugins](#configuration-file).
 
-The above sequence should result in three PEM encoded files being generated: auth.crt, auth.key, and auth.cas (certificate, private key, and CA certs respectively).  We'll reference the auth.crt, auth.key, and auth.cas files later when [configuring the plugins](#configuration-file).
+</TabItem>
+<TabItem title="Cloud" scopes={["cloud"]}>
+```code
+$ tctl auth sign --user=access-plugin-jira --out=auth.pem --ttl=2190h
+# ...
+```
+The above sequence should generate an identity file called `auth.pem`. We'll reference this file later when [configuring the plugins](#configuration-file).
+
+</TabItem>
+</Tabs>
 
 <Admonition
   type="note"
   title="Certificate Lifetime"
 >
-  By default, [`tctl auth sign`](../../setup/reference/cli.mdx#tctl-auth-sign) produces certificates with a relatively short lifetime. For production deployments, the `--ttl` flag can be used to ensure a more practical certificate lifetime. `--ttl=8760h` exports a 1 year token
+  By default, [`tctl auth sign`](../../setup/reference/cli.mdx#tctl-auth-sign) produces certificates with a relatively short lifetime. For production deployments, the `--ttl` flag can be used to ensure a more practical certificate lifetime. `--ttl=8760h` exports a 1 year token.
 </Admonition>
 
 ### Setting up your Jira Server instance
 
 #### Creating a Project
 
-Teleport Jira Plugin relies on your Jira project having a board with at least three statuses (columns): Pending, Approved, and Denied. It's therefore the easiest scenario to create a new Jira project for Teleport to use.
+The Teleport Jira plugin relies on your Jira project having a board with at least three statuses (columns): Pending, Approved, and Denied. It's therefore the easiest scenario to create a new Jira project for Teleport to use.
 
-The specific type of project you choose when you create it doesn't matter, as long as you can setup a Kanban Board for it, but we recommend that you go with Kanban Software Development — this will reduce the amount of setup work you'll have to do and provide the board out of the box.
+The specific type of project you choose when you create it doesn't matter, as long as you can setup a Kanban Board for it, but we recommend that you go with Kanban Software Development—this will reduce the amount of setup work you'll have to do and provide the board out of the box.
 
 You'll need the project key for the Teleport plugin settings later on. It's usually a 3 character code for the project.
 
 #### Setting up Request ID field on Jira
 
-Teleport stores the request metadata in a special Jira custom field that must be named teleportAccessRequestId. To create that field, go to Administration -> Issues -> Custom Fields -> Add Custom Field.
+Teleport stores the request metadata in a special Jira custom field that must be named `teleportAccessRequestId`. To create that field, go to Administration -> Issues -> Custom Fields -> Add Custom Field.
 
-Name the field `teleportAccessRequestId`, and choose Text Field (single line) as the field type. Assign the field to your project, or make it global. Teleport Access Request ID is an internal field and it's not supposed to be edited by users, so you can leave the Screens section blank. That means that the field won't show up in Jira UI.
+Name the field `teleportAccessRequestId`, and choose Text Field (single line) as the field type. Assign the field to your project, or make it global. Teleport Access Request ID is an internal field and it's not supposed to be edited by users, so you can leave the Screens section blank. That means that the field won't show up in Jira's UI.
 
 Go to Project Settings -> Fields and make sure that the `teleportAccessRequestId` field shows up on the list of fields available in this project.
 
 #### Setting up the status board
-
-The default Jira Software workflow has a different board setup from what Teleport needs, so we'll setup another workflow and assign that workflow to the project board.
+<!--TODO: Resume here-->
+The default Jira Software workflow has a different board setup from what Teleport needs, so we'll set up another workflow and assign that workflow to the project board.
 
 Go to Administration -> Workflows. You can choose to add a new workflow (recommended), or edit the existing workflow, it'll be called Software Simplified Workflow for Project NAME by default. It's only used in your single project, so it's safe to edit it.
 

@@ -98,7 +98,7 @@ $ tctl create -f rscs.yaml
 Teleport Plugin use the `access-plugin-mattermost` role and user to perform the approval. We export the identity files, using [`tctl auth sign`](../../setup/reference/cli.mdx#tctl-auth-sign).
 
 <Tabs>
-<TabItem title="Self-Hosted" scopes={["oss", "enterprise"]}>
+<TabItem title="Self Hosted" scopes={["oss", "enterprise"]}>
 ```code
 $ tctl auth sign --format=tls --user=access-plugin-mattermost --out=auth --ttl=2190h
 # ...
