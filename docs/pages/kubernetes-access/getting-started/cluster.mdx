@@ -107,6 +107,10 @@ to create a public IP for Teleport.
 Set up two `A` DNS records - `tele.example.com` for UI and `*.tele.example.com`
 for web apps using [application access](../../application-access/introduction.mdx).
 
+<Admonition type="note" title="Why do I need a wildcard certificate?">
+Teleport assigns a subdomain to each application you have configured for Application Access (e.g., `grafana.teleport.example.com`), so the wildcard certificate enables clients to verify your Teleport hosts regardless of application.
+</Admonition>
+
 <Tabs>
   <TabItem label="GCP Cloud DNS">
     ```code

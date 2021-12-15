@@ -348,6 +348,12 @@ $ kubectl --namespace teleport get all
 You'll need to set up two DNS `A` records: `teleport.example.com` for the web UI, and `*.teleport.example.com`
 for web apps using [application access](../../../application-access/introduction.mdx).
 
+<Admonition type="note" title="Why do I need a wildcard certificate?">
+Teleport assigns a subdomain to each application you have configured for Application Access (e.g., `grafana.teleport.example.com`), so the wildcard certificate enables clients to verify your Teleport hosts regardless of application.
+
+[Learn more about Teleport Application Access](../application-access/getting-started.mdx)
+</Admonition>
+
 Here's how to do this using Google Cloud DNS:
 
 ```code

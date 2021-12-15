@@ -7,6 +7,12 @@ using Let's Encrypt [ACME](https://letsencrypt.org/how-it-works/) protocol. We
 will assume that you have configured DNS records for `teleport.example.com` and
 `*.teleport.example.com` to point to the Teleport node.
 
+<Admonition type="note" title="Why do I need a wildcard certificate?">
+Teleport assigns a subdomain to each application you have configured for Application Access (e.g., `grafana.teleport.example.com`), so the wildcard certificate enables clients to verify your Teleport hosts regardless of application.
+
+[Learn more about Teleport Application Access](../application-access/getting-started.mdx)
+</Admonition>
+
 Generate Teleport config with ACME enabled:
 
 ```code
